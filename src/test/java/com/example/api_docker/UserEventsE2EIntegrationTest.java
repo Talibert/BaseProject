@@ -6,7 +6,7 @@ import com.example.api_docker.domain.user.event.UserCreatedEvent;
 import com.example.api_docker.domain.user.event.UserPasswordChangedEvent;
 import com.example.api_docker.infra.controller.user.request.ChangePasswordRequest;
 import com.example.api_docker.infra.controller.user.request.CreateUserRequest;
-import com.example.api_docker.infra.kafka.UserEventsConsumer;
+import com.example.api_docker.infra.kafka.user.UserEventsConsumer;
 import com.example.api_docker.infra.security.JwtTokenGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

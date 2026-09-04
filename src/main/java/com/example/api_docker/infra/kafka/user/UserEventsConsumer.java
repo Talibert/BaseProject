@@ -1,7 +1,8 @@
-package com.example.api_docker.infra.kafka;
+package com.example.api_docker.infra.kafka.user;
 
 import com.example.api_docker.domain.user.event.UserCreatedEvent;
 import com.example.api_docker.domain.user.event.UserPasswordChangedEvent;
+import com.example.api_docker.infra.kafka.KafkaConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
