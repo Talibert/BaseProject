@@ -1,11 +1,14 @@
 package com.example.api_docker.infra.controller.user;
 
+import com.example.api_docker.application.user.command.ChangeUserPasswordCommand;
 import com.example.api_docker.application.user.command.CreateUserCommand;
 import com.example.api_docker.application.user.query.GetUserQuery;
 import com.example.api_docker.application.user.result.UserResult;
+import com.example.api_docker.application.user.usecase.ChangeUserPasswordUseCase;
 import com.example.api_docker.application.user.usecase.CreateUserUseCase;
 import com.example.api_docker.application.user.usecase.GetUserUseCase;
 import com.example.api_docker.domain.user.UserId;
+import com.example.api_docker.infra.controller.user.request.ChangePasswordRequest;
 import com.example.api_docker.infra.controller.user.request.CreateUserRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -23,6 +26,7 @@ public class UserController {
 
     private final CreateUserUseCase createUserUseCase;
     private final GetUserUseCase getUserUseCase;
+    private final ChangeUserPasswordUseCase changeUserPasswordUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(@RequestBody @Valid CreateUserRequest request) {
@@ -46,5 +50,15 @@ public class UserController {
     public ResponseEntity<UserResult> findById(@PathVariable UUID id) {
         var result = getUserUseCase.execute(new GetUserQuery(new UserId(id)));
         return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal UserId userId,
+                                               @RequestBody @Valid ChangePasswordRequest request) {
+        ChangeUserPasswordCommand command = new ChangeUserPasswordCommand(
+                userId, request.currentPassword(), request.newPassword());
+
+        changeUserPasswordUseCase.execute(command);
+        return ResponseEntity.noContent().build();
     }
 }

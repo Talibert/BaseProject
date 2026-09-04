@@ -6,4 +6,5 @@ import java.util.UUID;
 public interface DomainEvent {
     UUID eventId();
     LocalDateTime occurredAt();
+    EventType eventType();
 }

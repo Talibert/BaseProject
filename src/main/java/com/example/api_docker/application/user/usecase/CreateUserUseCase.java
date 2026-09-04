@@ -19,13 +19,13 @@ public class CreateUserUseCase {
         if (userRepository.existsByEmail(new Email(command.email())))
             throw new EmailAlreadyInUseException(command.email());
 
-        User admin = User.create(
+        User user = User.create(
                 new FullName(command.firstName(), command.lastName()),
                 new Email(command.email()),
                 passwordEncoder.encode(command.rawPassword())
         );
 
-        userRepository.save(admin);
-        admin.pullDomainEvents().forEach(eventPublisher::publish);
+        userRepository.save(user);
+        user.pullDomainEvents().forEach(eventPublisher::publish);
     }
 }

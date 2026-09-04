@@ -2,8 +2,10 @@ package com.example.api_docker.infra.controller.user;
 
 import com.example.api_docker.ControllerAbstractTests;
 import com.example.api_docker.application.user.result.UserResult;
+import com.example.api_docker.application.user.usecase.ChangeUserPasswordUseCase;
 import com.example.api_docker.application.user.usecase.CreateUserUseCase;
 import com.example.api_docker.application.user.usecase.GetUserUseCase;
+import com.example.api_docker.infra.controller.user.request.ChangePasswordRequest;
 import com.example.api_docker.infra.controller.user.request.CreateUserRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +36,9 @@ class UserControllerTest extends ControllerAbstractTests {
 
     @MockitoBean
     private GetUserUseCase getUserUseCase;
+
+    @MockitoBean
+    private ChangeUserPasswordUseCase changeUserPasswordUseCase;
 
     @Test
     void shouldReturn201WhenCreatingUserWithValidData() throws Exception {
@@ -85,6 +91,29 @@ class UserControllerTest extends ControllerAbstractTests {
                         .header("Authorization", "Bearer " + tokenDoUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fullName").value("Guilherme Taliberti"));
+    }
+
+    @Test
+    void shouldReturn204WhenChangingPasswordWithValidData() throws Exception {
+        ChangePasswordRequest request = new ChangePasswordRequest("senhaAtual123", "novaSenha123");
+
+        doNothing().when(changeUserPasswordUseCase).execute(any());
+
+        mockMvc.perform(patch("/user/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("Authorization", "Bearer " + tokenDoUser))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturn401WhenChangingPasswordWithoutToken() throws Exception {
+        ChangePasswordRequest request = new ChangePasswordRequest("senhaAtual123", "novaSenha123");
+
+        mockMvc.perform(patch("/user/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
     }
 
     private static CreateUserRequest getCreateUserRequest() {
