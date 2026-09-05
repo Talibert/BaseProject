@@ -1,7 +1,7 @@
-package com.example.api_docker.application.auth;
+package com.example.api_docker.application.auth.usecase;
 
-import com.example.api_docker.application.shared.LoginCommand;
-import com.example.api_docker.application.shared.LoginResult;
+import com.example.api_docker.application.auth.command.LoginCommand;
+import com.example.api_docker.application.auth.result.LoginResult;
 import com.example.api_docker.domain.user.*;
 import com.example.api_docker.domain.user.exception.InvalidCredentialsException;
 import lombok.RequiredArgsConstructor;

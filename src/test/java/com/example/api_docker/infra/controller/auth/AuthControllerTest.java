@@ -1,8 +1,8 @@
 package com.example.api_docker.infra.controller.auth;
 
 import com.example.api_docker.ControllerAbstractTests;
-import com.example.api_docker.application.auth.LoginUseCase;
-import com.example.api_docker.application.shared.LoginResult;
+import com.example.api_docker.application.auth.result.LoginResult;
+import com.example.api_docker.application.auth.usecase.LoginUseCase;
 import com.example.api_docker.domain.user.exception.InvalidCredentialsException;
 import com.example.api_docker.infra.controller.auth.request.LoginRequest;
 import org.junit.jupiter.api.Test;
