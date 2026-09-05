@@ -7,10 +7,11 @@ services:
     networks:
       - api-network
     environment:
-      - SPRING_PROFILES_ACTIVE=postgres
+      - SPRING_PROFILES_ACTIVE=postgres,kafka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-api-course:5432/meu_projeto
       - SPRING_DATASOURCE_USERNAME=usuario
       - SPRING_DATASOURCE_PASSWORD=senha_forte
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-course:29092
 
 networks:
   api-network:

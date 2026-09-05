@@ -16,21 +16,14 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "admin.seed.enabled", havingValue = "true", matchIfMissing = true)
 public class UserSeedConfig {
 
-    @Value("${admin.seed.firstName}")
-    private String firstName;
-
-    @Value("${admin.seed.lastName}")
-    private String lastName;
-
-    @Value("${admin.seed.email}")
-    private String email;
-
-    @Value("${admin.seed.password}")
-    private String password;
-
     @Bean
-    public CommandLineRunner seedUser(CreateUserUseCase createUserUseCase,
-                                      UserRepository userRepository) {
+    public CommandLineRunner seedUser(
+            CreateUserUseCase createUserUseCase,
+            UserRepository userRepository,
+            @Value("${admin.seed.firstName}") String firstName,
+            @Value("${admin.seed.lastName}") String lastName,
+            @Value("${admin.seed.email}") String email,
+            @Value("${admin.seed.password}") String password) {
         return args -> {
             var userEmail = new Email(email);
             if (!userRepository.existsByEmail(userEmail)) {

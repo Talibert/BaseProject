@@ -66,6 +66,7 @@ public class GlobalExceptionHandler {
     // Erro inesperado → 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
+        log.error("Unexpected error occurred: ", ex);
         return ResponseEntity
                 .internalServerError()
                 .body(ErrorResponse.of("INTERNAL_ERROR", "Erro interno. Tente novamente."));
