@@ -1,6 +1,8 @@
 package com.example.api_docker.domain.user;
 
 import com.example.api_docker.RepositoryAbstractTests;
+import com.example.api_docker.domain.shared.pagination.PageResult;
+import com.example.api_docker.domain.shared.pagination.PaginationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,5 +91,28 @@ class UserRepositoryTest extends RepositoryAbstractTests {
         assertTrue(found.isPresent());
         assertEquals("Novo", found.get().getName().firstName());
         assertEquals("novo@email.com", found.get().getEmail().value());
+    }
+
+    @Test
+    @DisplayName("Deve listar usuários de forma paginada")
+    void shouldFindUsersPaginated() {
+        for (int i = 1; i <= 5; i++) {
+            userRepository.save(buildUser("paginated" + i + "@email.com"));
+        }
+
+        PageResult<User> page1 = userRepository.findAll(PaginationRequest.of(0, 2, "email", "ASC"));
+
+        assertEquals(2, page1.items().size());
+        assertEquals(0, page1.page());
+        assertEquals(2, page1.size());
+        assertTrue(page1.totalElements() >= 5);
+        assertTrue(page1.totalPages() >= 3);
+        assertTrue(page1.isFirst());
+        assertFalse(page1.isLast());
+
+        PageResult<User> page2 = userRepository.findAll(PaginationRequest.of(1, 2, "email", "ASC"));
+        assertEquals(2, page2.items().size());
+        assertEquals(1, page2.page());
+        assertFalse(page2.isFirst());
     }
 }

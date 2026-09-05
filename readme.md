@@ -75,19 +75,30 @@ O projeto inclui uma suíte automatizada de testes arquiteturais ([`CleanArchite
 
 ---
 
+### 4. Paginação Desacoplada e Agnóstica a Framework
+
+Em vez de vazar classes proprietárias do Spring Data (`Pageable`, `Page`) para o núcleo da aplicação, o projeto utiliza abstrações puras:
+- **`PaginationRequest` (Domain):** Especificação pura de página (`page`), tamanho (`size`), ordenação (`sortBy`) e direção (`sortDirection`), com proteções embutidas contra valores negativos ou tamanhos abusivos (`size > 100`).
+- **`PageResult<T>` (Domain):** Envelope genérico imutável contendo os itens e metadados (`page`, `size`, `totalElements`, `totalPages`, `isFirst`, `isLast`) com suporte a transformação funcional via `.map()`.
+- **`PageResponse<T>` (Infra):** DTO padronizado de resposta REST para o frontend, documentado com esquemas OpenAPI.
+- **`UserRepositoryImpl` (Infra):** Converte a abstração de domínio em `PageRequest.of(...)` do Spring Data JPA e mapeia o resultado de volta para `PageResult<User>`.
+
+---
+
 ## 📁 Estrutura de Diretórios
 
 ```
 src/main/java/com/example/api_docker/
 ├── domain/
 │   ├── shared/             # Classes base (AggregateRoot, DomainEvent, EntityId, ValueObject)
+│   │   └── pagination/     # PaginationRequest e PageResult<T> (Abstrações puras)
 │   └── user/               # Agregado User, Email, Password, Eventos e UserRepository
 ├── application/
 │   ├── auth/               # Commands, Results e UseCase de Autenticação / Login
-│   └── user/               # Commands, Queries, Results e UseCases de Usuário
+│   └── user/               # Commands, Queries (ListUsersQuery), Results e UseCases
 └── infra/
     ├── config/             # Configurações do Spring (OpenApiConfig, SecurityConfig, UserSeedConfig)
-    ├── controller/         # Controllers REST e DTOs (Request / Response)
+    ├── controller/         # Controllers REST, DTOs de entrada e PageResponse<T>
     ├── exception/          # GlobalExceptionHandler e ErrorResponse padronizado
     ├── kafka/              # Publisher, Topic Registry e Consumers Kafka
     ├── persistence/        # Entidades JPA e Repositórios Spring Data
@@ -195,7 +206,7 @@ A API possui documentação interativa gerada automaticamente com suporte a aute
 3. Copie o valor do campo `token` retornado no corpo da resposta.
 4. No topo da página do Swagger, clique no botão verde **Authorize** (com ícone de cadeado).
 5. Cole o token no campo de valor e confirme.
-6. Todos os endpoints protegidos (`GET /user/me`, `POST /user/register`, `PATCH /user/password`) agora podem ser executados diretamente pelo navegador!
+6. Todos os endpoints protegidos (`GET /user`, `GET /user/me`, `POST /user/register`, `PATCH /user/password`) agora podem ser executados diretamente pelo navegador!
 
 ### 🚀 Importação no Bruno ou Postman:
 Você pode importar todas as rotas e tipos diretamente no **Bruno** ou **Postman**:

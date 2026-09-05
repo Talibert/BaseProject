@@ -18,11 +18,6 @@ public class GetUserUseCase {
         User user = userRepository.findById(query.userId())
                 .orElseThrow(() -> new UserNotFoundException(query.userId()));
 
-        return new UserResult(
-                user.getId().value(),
-                user.getName().full(),
-                user.getEmail().value(),
-                user.getCreatedAt()
-        );
+        return UserResult.from(user);
     }
 }

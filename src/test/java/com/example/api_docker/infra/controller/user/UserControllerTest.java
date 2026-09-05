@@ -5,6 +5,8 @@ import com.example.api_docker.application.user.result.UserResult;
 import com.example.api_docker.application.user.usecase.ChangeUserPasswordUseCase;
 import com.example.api_docker.application.user.usecase.CreateUserUseCase;
 import com.example.api_docker.application.user.usecase.GetUserUseCase;
+import com.example.api_docker.application.user.usecase.ListUsersUseCase;
+import com.example.api_docker.domain.shared.pagination.PageResult;
 import com.example.api_docker.infra.controller.user.request.ChangePasswordRequest;
 import com.example.api_docker.infra.controller.user.request.CreateUserRequest;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -36,6 +39,9 @@ class UserControllerTest extends ControllerAbstractTests {
 
     @MockitoBean
     private GetUserUseCase getUserUseCase;
+
+    @MockitoBean
+    private ListUsersUseCase listUsersUseCase;
 
     @MockitoBean
     private ChangeUserPasswordUseCase changeUserPasswordUseCase;
@@ -104,6 +110,38 @@ class UserControllerTest extends ControllerAbstractTests {
                         .content(objectMapper.writeValueAsString(request))
                         .header("Authorization", "Bearer " + tokenDoUser))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturn200WhenListingUsersPaginated() throws Exception {
+        UserResult userResult = new UserResult(
+                idDoUser.value(), "Guilherme Taliberti",
+                "guilhermetaliberti@gmail.com", LocalDateTime.now()
+        );
+        PageResult<UserResult> pageResult = new PageResult<>(
+                List.of(userResult),
+                0,
+                10,
+                1L,
+                1
+        );
+
+        when(listUsersUseCase.execute(any())).thenReturn(pageResult);
+
+        mockMvc.perform(get("/user")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sortBy", "createdAt")
+                        .param("sortDirection", "DESC")
+                        .header("Authorization", "Bearer " + tokenDoUser))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].fullName").value("Guilherme Taliberti"))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.isFirst").value(true))
+                .andExpect(jsonPath("$.isLast").value(true));
     }
 
     @Test

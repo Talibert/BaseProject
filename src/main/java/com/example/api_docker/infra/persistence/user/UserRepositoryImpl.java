@@ -1,9 +1,16 @@
 package com.example.api_docker.infra.persistence.user;
 
+import com.example.api_docker.domain.shared.pagination.PageResult;
+import com.example.api_docker.domain.shared.pagination.PaginationRequest;
 import com.example.api_docker.domain.user.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -30,6 +37,32 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findByEmail(Email email) {
         return userJpaRepository.findByEmail(email.value()).map(this::toDomain);
+    }
+
+    @Override
+    public PageResult<User> findAll(PaginationRequest pagination) {
+        Sort sort = Sort.unsorted();
+        if (pagination.sortBy() != null && !pagination.sortBy().isBlank()) {
+            Sort.Direction direction = "DESC".equalsIgnoreCase(pagination.sortDirection())
+                    ? Sort.Direction.DESC
+                    : Sort.Direction.ASC;
+            sort = Sort.by(direction, pagination.sortBy());
+        }
+
+        Pageable pageable = PageRequest.of(pagination.page(), pagination.size(), sort);
+        Page<UserJpaEntity> entityPage = userJpaRepository.findAll(pageable);
+
+        List<User> users = entityPage.getContent().stream()
+                .map(this::toDomain)
+                .toList();
+
+        return new PageResult<>(
+                users,
+                entityPage.getNumber(),
+                entityPage.getSize(),
+                entityPage.getTotalElements(),
+                entityPage.getTotalPages()
+        );
     }
 
     private UserJpaEntity toJpaEntity(User user) {

@@ -1,14 +1,21 @@
 package com.example.api_docker.infra.controller.user;
 
 import com.example.api_docker.application.user.query.GetUserQuery;
+import com.example.api_docker.application.user.query.ListUsersQuery;
+import com.example.api_docker.application.user.result.UserResult;
 import com.example.api_docker.application.user.usecase.ChangeUserPasswordUseCase;
 import com.example.api_docker.application.user.usecase.CreateUserUseCase;
 import com.example.api_docker.application.user.usecase.GetUserUseCase;
+import com.example.api_docker.application.user.usecase.ListUsersUseCase;
+import com.example.api_docker.domain.shared.pagination.PageResult;
+import com.example.api_docker.domain.shared.pagination.PaginationRequest;
 import com.example.api_docker.domain.user.UserId;
+import com.example.api_docker.infra.controller.response.PageResponse;
 import com.example.api_docker.infra.controller.user.request.ChangePasswordRequest;
 import com.example.api_docker.infra.controller.user.request.CreateUserRequest;
 import com.example.api_docker.infra.controller.user.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -31,7 +38,29 @@ public class UserController {
 
     private final CreateUserUseCase createUserUseCase;
     private final GetUserUseCase getUserUseCase;
+    private final ListUsersUseCase listUsersUseCase;
     private final ChangeUserPasswordUseCase changeUserPasswordUseCase;
+
+    @Operation(summary = "Listar usuários com paginação", description = "Retorna uma página de usuários com metadados de paginação")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Página de usuários retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado")
+    })
+    @GetMapping
+    public ResponseEntity<PageResponse<UserResponse>> findAll(
+            @Parameter(description = "Número da página (iniciando em 0)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Quantidade de registros por página", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Campo para ordenação", example = "createdAt")
+            @RequestParam(required = false) String sortBy,
+            @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "DESC")
+            @RequestParam(defaultValue = "ASC") String sortDirection
+    ) {
+        PaginationRequest pagination = PaginationRequest.of(page, size, sortBy, sortDirection);
+        PageResult<UserResult> result = listUsersUseCase.execute(new ListUsersQuery(pagination));
+        return ResponseEntity.ok(PageResponse.from(result, UserResponse::from));
+    }
 
     @Operation(summary = "Cadastrar usuário", description = "Cadastra um novo usuário no sistema e publica o evento UserCreatedEvent no Kafka")
     @ApiResponses(value = {
