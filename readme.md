@@ -6,11 +6,12 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=flat-square&logo=postgresql)
 ![ArchUnit](https://img.shields.io/badge/ArchUnit-1.3-yellow?style=flat-square)
 ![OpenAPI 3](https://img.shields.io/badge/OpenAPI-3.0%20%2F%20Swagger-green?style=flat-square&logo=swagger)
+![Flyway](https://img.shields.io/badge/Flyway-Migrations-red?style=flat-square&logo=flyway)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)
 
 Template base pronto para produção voltado para criação rápida de novos microsserviços e APIs corporativas em Java 21 e Spring Boot 3. 
 
-Projetado seguindo **Clean Architecture**, **Domain-Driven Design (DDD)**, **Event-Driven Architecture (EDA)** com **Apache Kafka**, autenticação stateless com **JWT**, guardrails arquiteturais automatizados via **ArchUnit**, testes de integração com **EmbeddedKafka** e **Testcontainers**, e documentação interativa com **OpenAPI 3 (Swagger)**.
+Projetado seguindo **Clean Architecture**, **Domain-Driven Design (DDD)**, **Event-Driven Architecture (EDA)** com **Apache Kafka**, versionamento de banco com **Flyway**, autenticação stateless com **JWT**, guardrails arquiteturais automatizados via **ArchUnit**, testes de integração com **EmbeddedKafka** e **Testcontainers**, e documentação interativa com **OpenAPI 3 (Swagger)**.
 
 ---
 
@@ -85,6 +86,17 @@ Em vez de vazar classes proprietárias do Spring Data (`Pageable`, `Page`) para 
 
 ---
 
+### 5. Versionamento de Schema com Flyway (Zero `ddl-auto=update` em Produção)
+
+Em ambientes profissionais, o `ddl-auto=update` do Hibernate é perigoso (não gera histórico, não permite rollback e falha em alterações destrutivas ou renomeações). 
+
+O projeto adota o **Flyway**:
+- **Migrations SQL Imutáveis:** Armazenadas em `src/main/resources/db/migration/` no padrão `V<versao>__<descricao>.sql` (ex: `V1__create_users_table.sql`).
+- **Validação Estrita com Hibernate (`ddl-auto=validate`):** O Hibernate nunca altera o banco; ele apenas valida se as entidades JPA (`@Entity`) estão 100% em sincronia com o schema gerado pelo Flyway.
+- **Testes Automatizados de Migration ([`FlywayMigrationTest.java`](file:///src/test/java/com/example/api_docker/infra/persistence/FlywayMigrationTest.java)):** Valida a execução de todas as migrations, estado `SUCCESS`, integridade de tabelas, colunas e chaves primárias.
+
+---
+
 ## 📁 Estrutura de Diretórios
 
 ```
@@ -103,6 +115,9 @@ src/main/java/com/example/api_docker/
     ├── kafka/              # Publisher, Topic Registry e Consumers Kafka
     ├── persistence/        # Entidades JPA e Repositórios Spring Data
     └── security/           # Filtro JWT, Token Generator e BCrypt
+
+src/main/resources/
+└── db/migration/           # Scripts SQL versionados do Flyway (V1__..., V2__...)
 ```
 
 ---
@@ -219,11 +234,12 @@ Você pode importar todas as rotas e tipos diretamente no **Bruno** ou **Postman
 ## 🧪 Estratégia e Execução de Testes
 
 O projeto conta com uma pirâmide completa de testes automatizados:
-1. **Testes de Arquitetura:** Validação contínua com ArchUnit.
-2. **Testes Unitários:** Testes de domínio, Value Objects e Use Cases isolados com Mockito.
-3. **Testes de Controller:** Testes de camada web com `MockMvc` e validações de DTO.
-4. **Testes de Integração:** Testes com H2 em memória e PostgreSQL real via Testcontainers.
-5. **Testes End-to-End (E2E) com Kafka:** Fluxo completo via `@EmbeddedKafka` validando: chamada HTTP -> Controller -> Banco de Dados -> Disparo de Evento -> Consumo pelo Listener Kafka.
+1. **Testes de Arquitetura:** Validação contínua com ArchUnit (10 guardrails).
+2. **Testes de Migrations (Flyway):** Validação de histórico, estado `SUCCESS` e conformidade DDL das tabelas e colunas.
+3. **Testes Unitários:** Testes de domínio, Value Objects, paginação e Use Cases isolados com Mockito.
+4. **Testes de Controller:** Testes de camada web com `MockMvc` e validações de DTO.
+5. **Testes de Integração:** Testes de persistência e validação de schema Hibernate (`ddl-auto=validate`).
+6. **Testes End-to-End (E2E) com Kafka:** Fluxo completo via `@EmbeddedKafka` validando: chamada HTTP -> Controller -> Banco de Dados -> Disparo de Evento -> Consumo pelo Listener Kafka.
 
 Para executar todos os testes da aplicação:
 ```bash
