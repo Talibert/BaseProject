@@ -208,6 +208,68 @@ Ao inicializar a aplicação (seja localmente ou via container), um administrado
 
 ---
 
+## 🗄️ Gerenciamento de Banco de Dados: Flyway & Utilitário DBInstall
+
+O projeto utiliza **Flyway** para controle de versão e migrações do banco de dados PostgreSQL, em conjunto com `spring.jpa.hibernate.ddl-auto=validate`. Isso assegura que o Hibernate **nunca altere o schema em tempo de execução**, garantindo estabilidade absoluta e rastreabilidade total de mudanças.
+
+### ⚡ Utilitário `DBInstall` (Gerador de DDL para Migrations)
+
+Ao criar uma nova entidade JPA ou novos relacionamentos no projeto (como `@ManyToOne`, `@OneToMany`, Foreign Keys, Chaves Primárias ou Constraints), você **não precisa escrever o script DDL SQL do zero manualmente**.
+
+A classe [`DBInstall`](file:///Users/taliberti/Development/Personal/BaseProject/src/main/java/com/example/api_docker/infra/tools/DBInstall.java) (`infra.tools.DBInstall`) foi criada especificamente para isso:
+- 🔍 **Escaneamento Automático:** Varre o classpath em busca de todas as classes anotadas com `@Entity`.
+- 🐘 **Dialeto PostgreSQL:** Utiliza a engine de DDL do Hibernate 6 configurada com `PostgreSQLDialect` e convenção `snake_case` (`CamelCaseToUnderscoresNamingStrategy`).
+- 🔗 **Geração Completa:** Gera instruções DDL para `CREATE TABLE`, `PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE CONSTRAINT`, `INDEX` e `SEQUENCE`.
+- 🔌 **Execução 100% Offline:** Não requer conexão com banco de dados ativa para gerar o script.
+
+#### Como Executar o `DBInstall`:
+
+1. **Pela sua IDE (IntelliJ IDEA, Eclipse, VSCode):**
+   - Navegue até `src/main/java/com/example/api_docker/infra/tools/DBInstall.java`.
+   - Clique com o botão direito e selecione **Run 'DBInstall.main()'** (ou clique no ícone de Play verde ao lado de `main`).
+
+2. **Via Linha de Comando (Terminal):**
+   ```bash
+   ./mvnw compile exec:java -Dexec.mainClass="com.example.api_docker.infra.tools.DBInstall"
+   ```
+
+#### Exemplo de Saída no Console:
+```sql
+================================================================================
+ 🚀 DBInstall - Gerador de DDL SQL para Migrations (Dialeto: PostgreSQL)
+================================================================================
+
+🔍 Entidades encontradas (1):
+   - com.example.api_docker.infra.persistence.user.UserJpaEntity
+
+--------------------------------------------------------------------------------
+--- INÍCIO DO DDL GERADO (Copie para sua migration Flyway) ---
+--------------------------------------------------------------------------------
+
+create table users (
+    user_id uuid not null,
+    created_at timestamp(6) not null,
+    email varchar(255) not null unique,
+    first_name varchar(255) not null,
+    last_name varchar(255) not null,
+    password_hash varchar(255) not null,
+    primary key (user_id)
+);
+
+--------------------------------------------------------------------------------
+--- FIM DO DDL GERADO ---
+--------------------------------------------------------------------------------
+```
+
+#### Passo a Passo para Criar uma Nova Migration:
+1. Crie ou altere a entidade JPA em `infra/persistence/`.
+2. Execute o `DBInstall`.
+3. Copie o SQL gerado para o novo arquivo em:
+   `src/main/resources/db/migration/V<numero>__<descricao>.sql` (ex: `V2__create_orders_table.sql`).
+4. Execute `./mvnw test` para validar a migration e a conformidade do schema!
+
+---
+
 ## 📖 Documentação Interativa & Testes (OpenAPI 3 / Swagger)
 
 A API possui documentação interativa gerada automaticamente com suporte a autenticação via **Bearer Token (JWT)**:
