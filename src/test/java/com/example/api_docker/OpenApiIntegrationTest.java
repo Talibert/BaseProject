@@ -35,4 +35,23 @@ class OpenApiIntegrationTest extends IntegrationAbstractTests {
         mockMvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Deve retornar a documentação do grupo de negócio sem rotas do Actuator")
+    void shouldReturnBusinessGroupDocumentation() throws Exception {
+        mockMvc.perform(get("/v3/api-docs/1-aplicacao"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/auth/login']").exists())
+                .andExpect(jsonPath("$.paths['/user/register']").exists())
+                .andExpect(jsonPath("$.paths['/actuator/health']").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("Deve retornar a documentação do grupo do Actuator contendo as rotas de monitoramento")
+    void shouldReturnActuatorGroupDocumentation() throws Exception {
+        mockMvc.perform(get("/v3/api-docs/2-actuator"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/actuator/health']").exists())
+                .andExpect(jsonPath("$.paths['/auth/login']").doesNotExist());
+    }
 }

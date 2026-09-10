@@ -1,0 +1,27 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Build e dependências locais
+target/
+
+# Arquivos de IDE e SO
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Docker e Compose
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentação
+readme.md
+*.md
+
+# Logs e temporários
+*.log

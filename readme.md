@@ -204,7 +204,7 @@ O projeto utiliza uma estratégia de **Multi-stage Build** no [`Dockerfile`](fil
 Ao inicializar a aplicação (seja localmente ou via container), um administrador é provisionado automaticamente:
 - **Email:** `admin@course.com`
 - **Senha padrão:** `MaluZoe` *(customizável via variável de ambiente `ADMIN_SEED_PASSWORD`)*
-- **Health Check:** [http://localhost:8080/health](http://localhost:8080/health)
+- **Health Check & Probes (Actuator):** [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
 ---
 
