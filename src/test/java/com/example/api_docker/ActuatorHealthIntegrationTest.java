@@ -45,11 +45,24 @@ class ActuatorHealthIntegrationTest extends IntegrationAbstractTests {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("Deve retornar status UP no endpoint /actuator/health sem autenticação")
+    @DisplayName("Deve retornar os links de descoberta no endpoint raiz /actuator sem autenticação")
+    void shouldReturnActuatorDiscoveryLinksWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/actuator"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._links.self").exists())
+                .andExpect(jsonPath("$._links.health").exists());
+    }
+
+    @Test
+    @DisplayName("Deve retornar status UP no endpoint /actuator/health sem autenticação, com db e kafka ativos")
     void shouldReturnHealthUpWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"));
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components.db.status").value("UP"))
+                .andExpect(jsonPath("$.components.kafka.status").value("UP"))
+                .andExpect(jsonPath("$.components.kafka.details.clusterId").exists())
+                .andExpect(jsonPath("$.components.kafka.details.nodes").isNumber());
     }
 
     @Test
